@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Prompt Configuration</h1>
+    
+    <div class="row">
+        <!-- Prompt Templates -->
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Test LLM Report Generation</h5>
+                </div>
+                <div class="card-body">
+                    <form id="testReportForm">
+                        <div class="mb-3">
+                            <label class="form-label">Custom Prompt</label>
+                            <textarea class="form-control" rows="6" name="prompt" placeholder="Enter your custom prompt for testing..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate Test Report</button>
+                    </form>
+                    <div id="testReportResult" class="mt-3" style="display: none;">
+                        <h6>Generated Report:</h6>
+                        <div class="p-3 bg-light rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5>Prompt Templates by Alert Type</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs mb-3" id="promptTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="malware-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#malware" type="button">Malware</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="phishing-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#phishing" type="button">Phishing</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="network-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#network" type="button">Network</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="windows-events-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#windows-events" type="button">Windows Events</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="promptTabContent">
+                        <!-- Malware Tab -->
+                        <div class="tab-pane fade show active" id="malware" role="tabpanel">
+                            <form class="prompt-form" data-alert-type="malware">
+                                <div class="mb-3">
+                                    <label class="form-label">Prompt Template</label>
+                                    <textarea class="form-control" rows="8" name="template">Analyze this malware alert and provide:
+- Type of malware (ransomware, trojan, etc.)
+- Potential impact
+- Recommended containment steps
+- Suggested eradication procedures
+- Prevention recommendations for future
+
+Alert details: {alert_details}</textarea>
+                                    <small class="form-text text-muted">
+                                        Customize the prompt for Malware alerts. Use {alert_details} for the alert content.
+                                    </small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Temperature</label>
+                                        <input type="number" class="form-control" min="0" max="1" step="0.1"
+                                               value="0.3" name="temperature">
+                                        <small class="form-text text-muted">(0 = deterministic, 1 = creative)</small>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Max Tokens</label>
+                                        <input type="number" class="form-control" min="100" max="4000"
+                                               value="800" name="max_tokens">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Response Format</label>
+                                        <select class="form-select" name="response_format">
+                                            <option value="markdown" selected>Markdown</option>
+                                            <option value="json">JSON</option>
+                                            <option value="text">Plain Text</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Template</button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" data-bs-toggle="modal" 
+                                        data-bs-target="#previewModal" onclick="previewPrompt('malware')">
+                                    Preview
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Phishing Tab -->
+                        <div class="tab-pane fade" id="phishing" role="tabpanel">
+                            <form class="prompt-form" data-alert-type="phishing">
+                                <div class="mb-3">
+                                    <label class="form-label">Prompt Template</label>
+                                    <textarea class="form-control" rows="8" name="template">Analyze this phishing alert and provide:
+- Type of phishing attempt
+- Indicators of compromise
+- Potential targets within organization
+- Recommended user awareness actions
+- Technical mitigation steps
+
+Email details: {alert_details}</textarea>
+                                    <small class="form-text text-muted">
+                                        Customize the prompt for Phishing alerts. Use {alert_details} for the email content.
+                                    </small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Temperature</label>
+                                        <input type="number" class="form-control" min="0" max="1" step="0.1"
+                                               value="0.2" name="temperature">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Max Tokens</label>
+                                        <input type="number" class="form-control" min="100" max="4000"
+                                               value="600" name="max_tokens">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Response Format</label>
+                                        <select class="form-select" name="response_format">
+                                            <option value="markdown" selected>Markdown</option>
+                                            <option value="json">JSON</option>
+                                            <option value="text">Plain Text</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Template</button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" data-bs-toggle="modal" 
+                                        data-bs-target="#previewModal" onclick="previewPrompt('phishing')">
+                                    Preview
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Network Tab -->
+                        <div class="tab-pane fade" id="network" role="tabpanel">
+                            <form class="prompt-form" data-alert-type="network">
+                                <div class="mb-3">
+                                    <label class="form-label">Prompt Template</label>
+                                    <textarea class="form-control" rows="8" name="template">Analyze this network security alert and provide:
+- Type of network activity (DDoS, port scan, etc.)
+- Source and destination analysis
+- Potential threat level
+- Immediate containment recommendations
+- Long-term network hardening suggestions
+
+Network log: {alert_details}</textarea>
+                                    <small class="form-text text-muted">
+                                        Customize the prompt for Network alerts. Use {alert_details} for the network logs.
+                                    </small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Temperature</label>
+                                        <input type="number" class="form-control" min="0" max="1" step="0.1"
+                                               value="0.4" name="temperature">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Max Tokens</label>
+                                        <input type="number" class="form-control" min="100" max="4000"
+                                               value="1000" name="max_tokens">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Response Format</label>
+                                        <select class="form-select" name="response_format">
+                                            <option value="json" selected>JSON</option>
+                                            <option value="markdown">Markdown</option>
+                                            <option value="text">Plain Text</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Template</button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" data-bs-toggle="modal" 
+                                        data-bs-target="#previewModal" onclick="previewPrompt('network')">
+                                    Preview
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Windows Events Tab -->
+                        <div class="tab-pane fade" id="windows-events" role="tabpanel">
+                            <form class="prompt-form" data-alert-type="windows-events">
+                                <div class="mb-3">
+                                    <label class="form-label">Prompt Template</label>
+                                    <textarea class="form-control" rows="8" name="template">Analyze these Windows Event logs and provide:
+- Event type and severity
+- Potential security implications
+- User/process involved
+- Recommended investigation steps
+- System hardening recommendations
+
+Event details: {alert_details}</textarea>
+                                    <small class="form-text text-muted">
+                                        Customize the prompt for Windows Events. Use {alert_details} for the event log data.
+                                    </small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Temperature</label>
+                                        <input type="number" class="form-control" min="0" max="1" step="0.1"
+                                               value="0.3" name="temperature">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Max Tokens</label>
+                                        <input type="number" class="form-control" min="100" max="4000"
+                                               value="1200" name="max_tokens">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Response Format</label>
+                                        <select class="form-select" name="response_format">
+                                            <option value="markdown" selected>Markdown</option>
+                                            <option value="json">JSON</option>
+                                            <option value="text">Plain Text</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Template</button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" data-bs-toggle="modal" 
+                                        data-bs-target="#previewModal" onclick="previewPrompt('windows-events')">
+                                    Preview
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Prompt Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Generated Prompt:</h6>
+                <div id="previewPromptContent" class="p-3 bg-light rounded mb-3" style="white-space: pre-wrap;"></div>
+                <h6>Example Response:</h6>
+                <div id="previewResponseContent" class="p-3 bg-light rounded" style="white-space: pre-wrap;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Save prompt templates
+    document.querySelectorAll('.prompt-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const alertType = this.dataset.alertType;
+            const formData = new FormData(this);
+            
+            fetch('/api/llm-config/prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    alert_type: alertType,
+                    template: formData.get('template'),
+                    temperature: parseFloat(formData.get('temperature')),
+                    max_tokens: parseInt(formData.get('max_tokens')),
+                    response_format: formData.get('response_format')
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showToast('Template saved successfully!');
+            })
+            .catch(error => {
+                showToast('Error saving template: ' + error.message, 'error');
+            });
+        });
+    });
+    
+    // Test Report Form Handler
+    document.getElementById('testReportForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const prompt = this.querySelector('textarea[name="prompt"]').value;
+        const resultDiv = document.getElementById('testReportResult');
+        const resultContent = resultDiv.querySelector('.bg-light');
+        
+        fetch('/api/llm-config/test-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                prompt: prompt
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            resultDiv.style.display = 'block';
+            resultContent.textContent = data.report;
+        })
+        .catch(error => {
+            resultDiv.style.display = 'block';
+            resultContent.textContent = 'Error generating report: ' + error.message;
+        });
+    });
+});
+
+function previewPrompt(alertType) {
+    const activeTab = document.querySelector(`#${alertType}`);
+    const template = activeTab.querySelector('textarea[name="template"]').value;
+    
+    // Example data for each alert type
+    const exampleData = {
+        'malware': {
+            alert_details: "Detected: Trojan.Win32.Emotet\nProcess: C:\\Windows\\Temp\\svchost.exe\nTarget files: 142 documents encrypted"
+        },
+        'phishing': {
+            alert_details: "From: support@yourbank.com\nTo: employee@company.com\nSubject: Urgent: Account Verification Required\nContains suspicious link: hxxps://your-bank[.]com/verify"
+        },
+        'network': {
+            alert_details: "Multiple failed SSH attempts from 192.168.1.105\nTarget: 10.0.0.12\nFrequency: 45 attempts/minute\nDuration: 12 minutes"
+        },
+        'windows-events': {
+            alert_details: "Event ID: 4625\nLogon Type: 3\nAccount: ADMIN$\nSource IP: 192.168.1.200\nFailure Reason: Unknown user name or bad password"
+        }
+    };
+    
+    let processedPrompt = template;
+    for (const [key, value] of Object.entries(exampleData[alertType])) {
+        processedPrompt = processedPrompt.replace(new RegExp(`{${key}}`, 'g'), value);
+    }
+    
+    document.getElementById('previewPromptContent').textContent = processedPrompt;
+    
+    // Example responses for each alert type
+    const exampleResponses = {
+        'malware': "1. Malware Type: Trojan (Emotet variant)\n2. Impact: Document encryption, potential data exfiltration\n3. Containment: Isolate affected machine, disable network access\n4. Eradication: Run anti-malware tools in safe mode\n5. Prevention: Update endpoint protection, restrict temp folder execution",
+        'phishing': "1. Phishing Type: Impersonation attack (bank theme)\n2. IOCs: Suspicious domain (your-bank[.]com)\n3. Targets: Finance department employees\n4. Awareness: Conduct phishing simulation training\n5. Mitigation: Block domain at firewall, scan for compromises",
+        'network': "1. Activity Type: Brute force SSH attack\n2. Source: Potentially compromised internal host\n3. Threat Level: High (targeting critical server)\n4. Containment: Block source IP temporarily\n5. Hardening: Implement SSH key authentication",
+        'windows-events': "1. Event Type: Failed logon (RDP attempt)\n2. Severity: High (targeting admin account)\n3. User: System account being targeted\n4. Investigation: Check for follow-up events\n5. Hardening: Enable account lockout policy"
+    };
+    
+    document.getElementById('previewResponseContent').textContent = exampleResponses[alertType];
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `position-fixed bottom-0 end-0 p-3`;
+    toast.innerHTML = `
+        <div class="toast show" role="alert">
+            <div class="toast-header bg-${type} text-white">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}
